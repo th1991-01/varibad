@@ -24,6 +24,7 @@ class VaribadVAE:
 
     def __init__(self, args, logger, get_iter_idx):
 
+        print("VaribadVAE args:\n",args)
         self.args = args
         self.logger = logger
         self.get_iter_idx = get_iter_idx
@@ -528,6 +529,7 @@ class VaribadVAE:
         # get a mini-batch
         vae_prev_obs, vae_next_obs, vae_actions, vae_rewards, vae_tasks, \
         trajectory_lens = self.rollout_storage.get_batch(batchsize=self.args.vae_batch_num_trajs)
+        print("trajectory_lens",trajectory_lens)
         # vae_prev_obs will be of size: max trajectory len x num trajectories x dimension of observations
 
         # pass through encoder (outputs will be: (max_traj_len+1) x number of rollouts x latent_dim -- includes the prior!)
@@ -545,6 +547,7 @@ class VaribadVAE:
                                                              vae_actions, vae_rewards, vae_tasks,
                                                              trajectory_lens, len_encoder)
         elif self.args.split_batches_by_elbo:
+            raise NotImplementedError
             losses = self.compute_loss_split_batches_by_elbo(latent_mean, latent_logvar, vae_prev_obs, vae_next_obs,
                                                              vae_actions, vae_rewards, vae_tasks,
                                                              trajectory_lens)
@@ -588,6 +591,7 @@ class VaribadVAE:
                     nn.utils.clip_grad_norm_(self.task_decoder.parameters(), self.args.decoder_max_grad_norm)
             # update
             self.optimiser_vae.step()
+        print("elbo_loss",elbo_loss)
 
         self.log(elbo_loss, rew_reconstruction_loss, state_reconstruction_loss, task_reconstruction_loss, kl_loss,
                  pretrain_index)
